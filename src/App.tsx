@@ -71,11 +71,12 @@ function SectionHeading({ eyebrow, title, children }: { eyebrow: string; title: 
   </div>
 }
 
-function FiscalAddress() {
-  return <div className="fiscal-address">
-    <p><strong>Domicilio fiscal</strong><span>{company.contact.address}</span></p>
-    <a href={whatsappLink('Hola, Good Machines Perú. Quisiera consultar por su domicilio fiscal.')}
-      target="_blank" rel="noreferrer">Consultar domicilio por WhatsApp</a>
+function ContactAddress() {
+  const { streetAddress, addressLocality, postalCode } = company.contact.address
+  return <div className="contact-address">
+    <p><strong>Encuéntranos en</strong><span>{postalCode}, {streetAddress}, {addressLocality} {postalCode}</span></p>
+    <a href={whatsappLink('Hola, Good Machines Perú. Quisiera consultar por su ubicación.')}
+      target="_blank" rel="noreferrer">Consultar ubicación por WhatsApp</a>
   </div>
 }
 
@@ -612,7 +613,7 @@ function App({ route }: { route: Route }) {
             <button className="button button-on-dark" onClick={() => setOverlay({ type: 'quote' })}><ClipboardList size={18} /> Preparar cotización</button>
             <a href="#catalogo" className="button button-on-dark">Explorar catálogo</a>
           </div>
-          <FiscalAddress />
+          <ContactAddress />
         </div>
       </section>
       </>}
@@ -681,7 +682,7 @@ function App({ route }: { route: Route }) {
             <a href={whatsappLink()} target="_blank" rel="noreferrer">
               <MessageCircle size={17} aria-hidden="true" /> WhatsApp {company.contact.whatsapp.label}
             </a>
-            <FiscalAddress />
+            <ContactAddress />
           </div>
         </div>
         <div className="footer-bottom"><span suppressHydrationWarning>© {new Date().getFullYear()} Good Machines Perú</span><span>Desarrollado por <strong>Kafka Tech</strong></span></div>

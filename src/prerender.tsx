@@ -13,10 +13,7 @@ function structuredData(route: Exclude<Route, { type: 'not-found' }>) {
     {
       '@type': 'Organization', '@id': absolute('/#organizacion'), name: company.name,
       url: absolute('/'), logo: absolute(company.logo), telephone: `+${company.contact.whatsapp.number}`,
-      address: {
-        '@type': 'PostalAddress', streetAddress: company.contact.address.replace(/, Lima$/, ''),
-        addressLocality: 'Lima', addressCountry: 'PE',
-      },
+      address: { '@type': 'PostalAddress', ...company.contact.address },
       sameAs: company.contact.social.map(profile => profile.url),
     },
     {
