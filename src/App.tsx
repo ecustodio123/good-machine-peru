@@ -380,7 +380,7 @@ function App({ route }: { route: Route }) {
           <img src={company.logo} alt="" width="53" height="53" />
           <span className="brand-copy">
             <span className="brand-name">Good Machines Perú</span>
-            <span className="brand-tagline">Todo para tu granja</span>
+            <span className="brand-tagline">Todo lo necesario para tu granja</span>
           </span>
         </a>
         <nav id="main-navigation" aria-label="Navegación principal" className={menuOpen ? 'nav is-open' : 'nav'}>
@@ -406,7 +406,7 @@ function App({ route }: { route: Route }) {
       <section className="hero" id="inicio" aria-labelledby="hero-title">
         <div className="shell hero-inner">
           <div className="hero-copy">
-            <p className="hero-tagline">Todo para tu granja</p>
+            <p className="hero-tagline">Todo lo necesario para tu granja</p>
             <h1 id="hero-title">Maquinaria agroindustrial y equipos para granjas en Perú</h1>
             <p className="hero-description">Maquinaria agroindustrial y equipos para granjas en Perú. Compara peletizadoras, pisos para cerdos y peladoras de ajo, y cotiza por WhatsApp.</p>
             <div className="hero-actions">

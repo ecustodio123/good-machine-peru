@@ -57,7 +57,7 @@ function PageMetadata({ route }: { route: Route }) {
     ? `${route.product.description} Consulta la ficha técnica y cotiza por WhatsApp con Good Machines Perú.` : homeDescription
   const image = route.type === 'collection' ? media(route.collection.image) : route.type === 'product'
     ? route.product.images[0] : shareImage
-  const alt = isHome ? 'Good Machines Perú, Todo para tu granja. Una extrusora, una peletizadora y un piso SLAT.'
+  const alt = isHome ? 'Good Machines Perú, Todo lo necesario para tu granja. Una extrusora, una peletizadora y un piso SLAT.'
     : route.type === 'product' ? productName(route.product) : route.collection.name
   const data = JSON.stringify({ '@context': 'https://schema.org', '@graph': structuredData(route) }).replace(/</g, '\\u003c')
 
