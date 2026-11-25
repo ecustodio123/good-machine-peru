@@ -378,8 +378,10 @@ function App({ route }: { route: Route }) {
       <div className="shell header-inner">
         <a className="brand header-brand" href={isHome ? '#inicio' : '/'}>
           <img src={company.logo} alt="" width="53" height="53" />
-          <span className="brand-name">GOOD MACHINES <small>PERÚ</small></span>
-          <span className="brand-tagline">Todo para tu granja</span>
+          <span className="brand-copy">
+            <span className="brand-name">Good Machines Perú</span>
+            <span className="brand-tagline">Todo para tu granja</span>
+          </span>
         </a>
         <nav id="main-navigation" aria-label="Navegación principal" className={menuOpen ? 'nav is-open' : 'nav'}>
           {navigation.map(([id, label]) => <a key={id} href={`${isHome ? '' : '/'}#${id}`} onClick={() => setMenuOpen(false)}
@@ -662,7 +664,7 @@ function App({ route }: { route: Route }) {
           <div>
             <a className="brand" href={isHome ? '#inicio' : '/'}>
               <img src={company.logo} alt="" width="53" height="53" />
-              <span className="brand-name">GOOD MACHINES <small>PERÚ</small></span>
+              <span className="brand-name">Good Machines Perú</span>
             </a>
             <p>Maquinaria y equipamiento para actividades agroindustriales y productivas.</p>
             <nav className="footer-social" aria-label="Redes sociales">
