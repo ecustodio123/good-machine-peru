@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import {
   ArrowDown, ArrowDownToLine, Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp,
-  ClipboardList, Copy, Factory, FileText, Menu, Minus, Plus,
+  ClipboardList, Factory, FileText, MapPin, Menu, MessageCircle, Minus, Plus,
   Search, SlidersHorizontal, Trash2, X,
 } from 'lucide-react'
-import { categories, getCategory, media, normalize, productName, products, type CategoryId, type Product } from './catalog'
-import { company } from './config'
+import { categories, getCategory, media, normalize, productName, products, type CategoryId, type PowerSource, type Product } from './catalog'
+import { company, whatsappLink } from './config'
+import { categoryPath, productPath, topicalCollections, type Route } from './routes'
 
 const navigation = [
   ['inicio', 'Inicio'], ['catalogo', 'Productos'], ['sectores', 'Sectores'],
@@ -15,7 +16,7 @@ const navigation = [
 const sectors: { title: string; description: string; image: string; categories: CategoryId[] }[] = [
   { title: 'Agroindustria', description: 'Molienda y transformación de granos y materias primas.', image: 'trilladora', categories: ['granos'] },
   { title: 'Producción de alimentos', description: 'Procesamiento, deshidratación, extracción y empaque.', image: 'ss-06a', categories: ['alimentos', 'aceites', 'empaque', 'deshidratadores'] },
-  { title: 'Avicultura y porcicultura', description: 'Alimentación, manejo y procesamiento en granjas.', image: 'desplumadora-sy', categories: ['avicultura', 'porcicultura'] },
+  { title: 'Avicultura y porcicultura', description: 'Comederos, bebederos y equipos para el manejo y procesamiento en tu granja.', image: 'desplumadora-sy', categories: ['avicultura', 'porcicultura'] },
   { title: 'Alimentos balanceados', description: 'Equipos para la molienda, mezcla, peletización y extrusión.', image: 'dgp-40', categories: ['balanceados', 'granos'] },
 ]
 
@@ -43,6 +44,13 @@ const storageKey = 'good-machines-quote-v1'
 type Selection = Record<string, number>
 type Overlay = { type: 'product'; product: Product } | { type: 'quote' }
 type CategoryFilter = { ids: readonly CategoryId[]; label: string }
+const emptySelection: Selection = {}
+
+function handleLink(event: MouseEvent<HTMLAnchorElement>, action: () => void) {
+  if (event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+  event.preventDefault()
+  action()
+}
 
 function readSelection(): Selection {
   try {
@@ -63,16 +71,24 @@ function SectionHeading({ eyebrow, title, children }: { eyebrow: string; title: 
   </div>
 }
 
+function FiscalAddress() {
+  return <a className="fiscal-address" href={whatsappLink('Hola, Good Machines Perú. Quisiera consultar por su domicilio fiscal.')}
+    target="_blank" rel="noreferrer">
+    <MapPin size={18} aria-hidden="true" />
+    <span><strong>Domicilio fiscal:</strong> {company.contact.address}</span>
+  </a>
+}
+
 function ProductCard({ product, selected, open, quote }: {
   product: Product; selected: boolean; open: () => void; quote: () => void
 }) {
   const soldOut = product.availability === 'agotado'
   return <article className="product-card">
-    <button className="product-image" onClick={open} aria-label={`Ver detalles de ${productName(product)}`}>
+    <a className="product-image" href={productPath(product)} onClick={event => handleLink(event, open)} aria-label={`Ver detalles de ${productName(product)}`}>
       <img src={product.images[0]} alt={productName(product)} loading="lazy" decoding="async" />
       {product.model && <span className="model-tag">{product.model}</span>}
       {soldOut && <span className="stock-tag">Agotado según catálogo</span>}
-    </button>
+    </a>
     <div className="product-content">
       <p className="product-category">{getCategory(product.category).name}</p>
       <h3>{product.name}</h3>
@@ -83,7 +99,7 @@ function ProductCard({ product, selected, open, quote }: {
       </dl>
       <p className="price">Consultar precio</p>
       <div className="card-actions">
-        <button className="button button-small button-outline" onClick={open} aria-label={`Ver detalles de ${productName(product)}`}>Ver detalles</button>
+        <a className="button button-small button-outline" href={productPath(product)} onClick={event => handleLink(event, open)} aria-label={`Ver detalles de ${productName(product)}`}>Ver detalles</a>
         <button className="button button-small button-dark" onClick={quote} aria-label={`Cotizar ${productName(product)}`}>
           {selected ? <Check size={15} /> : <Plus size={15} />} Cotizar
         </button>
@@ -128,11 +144,15 @@ function Modal({ overlay, close, children }: { overlay: Overlay | null; close: (
   </dialog>
 }
 
-function ProductDetail({ product, selected, add, quote }: {
-  product: Product; selected: boolean; add: () => void; quote: () => void
+function ProductDetail({ product, selected, add, quote, fullPage = false }: {
+  product: Product; selected: boolean; add: () => void; quote: () => void; fullPage?: boolean
 }) {
   const [imageIndex, selectImage] = useState(0)
   const soldOut = product.availability === 'agotado'
+  const Heading = fullPage ? 'h1' : 'h3'
+  const ApplicationsHeading = fullPage ? 'h2' : 'h4'
+  const quoteText = soldOut ? 'Consultar disponibilidad futura' : 'Solicitar cotización'
+  const message = soldOut ? 'Quisiera consultar la disponibilidad futura de' : 'Quisiera solicitar una cotización de'
   return <div className="detail-grid">
     <div>
       <div className="detail-image">
@@ -147,7 +167,7 @@ function ProductDetail({ product, selected, add, quote }: {
     </div>
     <div className="detail-body">
       <p className="product-category">{getCategory(product.category).name}</p>
-      <h3>{productName(product)}</h3>
+      <Heading className="detail-title">{productName(product)}</Heading>
       <p>{product.description}</p>
       <p className={soldOut ? 'availability is-sold-out' : 'availability'}>{soldOut ? 'Agotado según catálogo' : 'Consultar disponibilidad'}</p>
       <table className="spec-table">
@@ -156,15 +176,17 @@ function ProductDetail({ product, selected, add, quote }: {
           <th scope="row">{label}</th><td>{value}</td>
         </tr>)}</tbody>
       </table>
-      {product.applications.length > 0 && <div className="applications"><h4>Aplicaciones</h4><ul>
+      {product.applications.length > 0 && <div className="applications"><ApplicationsHeading>Aplicaciones</ApplicationsHeading><ul>
         {product.applications.map(application => <li key={application}>{application}</li>)}
       </ul></div>}
       <p className="source-note">
         <a href={`${company.catalog.url}#page=${product.sourcePage}`} target="_blank" rel="noreferrer">Catálogo original, página {product.sourcePage}</a>
         {product.validationNotes && <span>{product.validationNotes}</span>}
+        {!fullPage && <span><a href={productPath(product)}>Abrir ficha completa</a></span>}
       </p>
       <div className="detail-actions">
-        <button className="button button-dark" onClick={quote}>{soldOut ? 'Consultar disponibilidad futura' : 'Solicitar cotización'}</button>
+        {fullPage ? <a className="button button-dark" href={whatsappLink(`Hola, Good Machines Perú. ${message} ${productName(product)}.`)}
+          onClick={event => handleLink(event, quote)}>{quoteText}</a> : <button className="button button-dark" onClick={quote}>{quoteText}</button>}
         <button className="button button-outline" onClick={() => { if (!selected) add() }} aria-disabled={selected}>
           {selected ? <Check size={17} /> : <Plus size={17} />}
           {selected ? 'En mi cotización' : 'Agregar a mi cotización'}
@@ -177,8 +199,6 @@ function ProductDetail({ product, selected, add, quote }: {
 function Quote({ selection, setQuantity, close }: {
   selection: Selection; setQuantity: (id: string, quantity: number) => void; close: () => void
 }) {
-  const [feedback, setFeedback] = useState('')
-  const messageField = useRef<HTMLTextAreaElement>(null)
   const selected = products.filter(product => selection[product.id])
   const lines = selected.map((product, index) => {
     const note = product.availability === 'agotado' ? ' (consulta de disponibilidad futura)' : ''
@@ -186,24 +206,11 @@ function Quote({ selection, setQuantity, close }: {
   })
   const message = ['Hola, Good Machines Perú. Estoy interesado en recibir información y cotización de los siguientes equipos:',
     ...lines, 'Agradecería información sobre precios y disponibilidad.'].join('\n\n')
-  const whatsapp = company.contact.whatsapp.replace(/\D/g, '')
-
-  async function copyMessage() {
-    try {
-      await navigator.clipboard.writeText(message)
-      setFeedback('Mensaje copiado.')
-    } catch {
-      messageField.current?.focus()
-      messageField.current?.select()
-      setFeedback('Mensaje seleccionado. Puedes copiarlo con el teclado o el menú del dispositivo.')
-    }
-  }
-
   if (!selected.length) return <div className="quote-empty">
     <ClipboardList size={38} strokeWidth={1.45} />
     <h3>Elige los equipos que te interesan</h3>
     <p>Cuando agregues maquinaria podrás indicar cantidades y preparar un mensaje para Good Machines Perú.</p>
-    <a className="button button-dark" href="#catalogo" onClick={close}>Explorar catálogo</a>
+    <a className="button button-dark" href="/#catalogo" onClick={close}>Explorar catálogo</a>
   </div>
 
   return <div className="quote-body">
@@ -218,50 +225,51 @@ function Quote({ selection, setQuantity, close }: {
             <strong>{name}</strong>
             {product.availability === 'agotado' && <small>Agotado según catálogo</small>}
             <div className="quantity" role="group" aria-label={`Cantidad de ${name}`}>
-              <button aria-label={`Reducir cantidad de ${name}`} onClick={() => { setFeedback(''); setQuantity(product.id, quantity - 1) }} disabled={quantity <= 1}><Minus size={16} /></button>
+              <button aria-label={`Reducir cantidad de ${name}`} onClick={() => setQuantity(product.id, quantity - 1)} disabled={quantity <= 1}><Minus size={16} /></button>
               <span aria-live="polite">{quantity}</span>
-              <button aria-label={`Aumentar cantidad de ${name}`} onClick={() => { setFeedback(''); setQuantity(product.id, quantity + 1) }} disabled={quantity >= Number.MAX_SAFE_INTEGER}><Plus size={16} /></button>
+              <button aria-label={`Aumentar cantidad de ${name}`} onClick={() => setQuantity(product.id, quantity + 1)} disabled={quantity >= Number.MAX_SAFE_INTEGER}><Plus size={16} /></button>
             </div>
           </div>
-          <button className="icon-button" aria-label={`Quitar ${name}`} onClick={() => { setFeedback(''); setQuantity(product.id, 0) }}><Trash2 size={18} /></button>
+          <button className="icon-button" aria-label={`Quitar ${name}`} onClick={() => setQuantity(product.id, 0)}><Trash2 size={18} /></button>
         </li>
       })}
     </ul>
-    <label className="message-label" htmlFor="quote-message">Mensaje de cotización</label>
-    <textarea id="quote-message" ref={messageField} readOnly value={message} rows={7} />
+    <h3 className="message-label">Mensaje de cotización</h3>
+    <p className="quote-message">{message}</p>
     <div className="quote-actions">
-      <button className="button button-primary" onClick={copyMessage}><Copy size={18} /> Copiar mensaje</button>
-      {whatsapp && <a className="button button-dark" href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`}
-        target="_blank" rel="noreferrer">Abrir WhatsApp</a>}
+      <a className="button button-primary" href={whatsappLink(message)} target="_blank" rel="noreferrer">
+        <MessageCircle size={18} aria-hidden="true" /> Abrir WhatsApp
+      </a>
     </div>
-    <p className="copy-feedback" role="status">{feedback}</p>
   </div>
 }
 
-function App() {
-  const [activeAnchor, setActiveAnchor] = useState('inicio')
+function App({ route }: { route: Route }) {
+  const [activeAnchor, setActiveAnchor] = useState(route.type === 'home' ? 'inicio' : 'catalogo')
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [category, setCategory] = useState<CategoryFilter | null>(null)
   const [query, setQuery] = useState('')
   const [equipmentType, setEquipmentType] = useState('')
-  const [power, setPower] = useState('')
+  const [power, setPower] = useState<PowerSource | ''>('')
   const [filterOpen, setFilterOpen] = useState(false)
   const [limit, setLimit] = useState(pageSize)
   const [useCase, setUseCase] = useState('')
-  const [selection, setSelection] = useState(readSelection)
+  const [savedSelection, setSelection] = useState<Selection | null>(null)
   const [overlay, setOverlay] = useState<Overlay | null>(null)
   const [announcement, setAnnouncement] = useState('')
   const track = useRef<HTMLDivElement>(null)
   const menuToggle = useRef<HTMLButtonElement>(null)
   const page = useRef<HTMLDivElement>(null)
+  const selection = savedSelection ?? emptySelection
+  const isHome = route.type === 'home'
 
   useEffect(() => {
     function updateAnchor() {
       const offset = window.innerHeight * 0.29
       const current = [...navigation].reverse().find(([id]) =>
         (document.getElementById(id === 'catalogo' ? 'lineas' : id)?.getBoundingClientRect().top ?? Infinity) < offset)
-      setActiveAnchor(current?.[0] ?? 'inicio')
+      setActiveAnchor(isHome ? current?.[0] ?? 'inicio' : 'catalogo')
       setScrolled(window.scrollY > 12)
     }
     updateAnchor()
@@ -271,7 +279,7 @@ function App() {
       window.removeEventListener('scroll', updateAnchor)
       window.removeEventListener('resize', updateAnchor)
     }
-  }, [])
+  }, [isHome])
 
   useEffect(() => {
     const observer = new IntersectionObserver(entries => {
@@ -287,12 +295,17 @@ function App() {
   }, [])
 
   useEffect(() => {
+    setSelection(current => current ?? readSelection())
+  }, [])
+
+  useEffect(() => {
+    if (!savedSelection) return
     try {
-      localStorage.setItem(storageKey, JSON.stringify(selection))
+      localStorage.setItem(storageKey, JSON.stringify(savedSelection))
     } catch {
       // The current session's selection remains available if storage is blocked.
     }
-  }, [selection])
+  }, [savedSelection])
 
   function clearFilters() {
     setCategory(null)
@@ -308,13 +321,16 @@ function App() {
   }
 
   function addToQuote(product: Product) {
-    setSelection(current => current[product.id] ? current : { ...current, [product.id]: 1 })
+    setSelection(current => {
+      const updated = current ?? readSelection()
+      return updated[product.id] ? updated : { ...updated, [product.id]: 1 }
+    })
     setAnnouncement(`${productName(product)} agregado a Mi cotización.`)
   }
 
   function setQuantity(id: string, quantity: number) {
     setSelection(current => {
-      const updated = { ...current }
+      const updated = { ...(current ?? readSelection()) }
       if (quantity > 0) updated[id] = quantity
       else delete updated[id]
       return updated
@@ -334,14 +350,14 @@ function App() {
 
   const categoryProducts = category ? products.filter(product => category.ids.includes(product.category)) : products
   const types = [...new Set(categoryProducts.map(product => product.subcategory))].sort((a, b) => a.localeCompare(b, 'es'))
-  const powerSources = [...new Set(categoryProducts.flatMap(product => product.power ? [product.power] : []))]
+  const powerSources = [...new Set(categoryProducts.flatMap(product => product.powerSources))]
   const search = normalize(query)
   const matches = categoryProducts.filter(product => {
     if (equipmentType && product.subcategory !== equipmentType) return false
-    if (power && product.power !== power) return false
+    if (power && !product.powerSources.includes(power)) return false
     const model = normalize(product.model ?? '').replaceAll(' ', '')
-    const searchable = normalize([product.name, product.model, model, product.power, product.subcategory, getCategory(product.category).name,
-      product.description, ...product.applications].join(' '))
+    const searchable = normalize([product.name, product.model, model, product.subcategory, getCategory(product.category).name,
+      product.description, ...product.powerSources, ...product.specifications.flat(), ...product.applications].join(' '))
     return !search || model.includes(search.replaceAll(' ', '')) || search.split(' ').every(word => searchable.includes(word))
   })
   const count = Object.keys(selection).length
@@ -359,12 +375,13 @@ function App() {
       }
     }}>
       <div className="shell header-inner">
-        <a className="brand" href="#inicio">
+        <a className="brand header-brand" href={isHome ? '#inicio' : '/'}>
           <img src={company.logo} alt="" width="53" height="53" />
-          <span>GOOD MACHINES <small>PERÚ</small></span>
+          <span className="brand-name">GOOD MACHINES <small>PERÚ</small></span>
+          <span className="brand-tagline">Todo para tu granja</span>
         </a>
         <nav id="main-navigation" aria-label="Navegación principal" className={menuOpen ? 'nav is-open' : 'nav'}>
-          {navigation.map(([id, label]) => <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)}
+          {navigation.map(([id, label]) => <a key={id} href={`${isHome ? '' : '/'}#${id}`} onClick={() => setMenuOpen(false)}
             aria-current={activeAnchor === id ? 'location' : undefined}>{label}</a>)}
         </nav>
         <div className="header-actions">
@@ -382,12 +399,13 @@ function App() {
     </header>
 
     <main id="main" tabIndex={-1}>
+      {route.type === 'home' && <>
       <section className="hero" id="inicio" aria-labelledby="hero-title">
         <div className="shell hero-inner">
           <div className="hero-copy">
             <p className="eyebrow">Maquinaria para sectores productivos</p>
-            <h1 id="hero-title">Impulsa tu producción <em>al siguiente nivel.</em></h1>
-            <p className="hero-description">Encuentra maquinaria y equipos para la agroindustria, el procesamiento de alimentos, la producción de alimentos balanceados y el equipamiento de granjas.</p>
+            <h1 id="hero-title">Todo para <em>tu granja</em></h1>
+            <p className="hero-description">Maquinaria agroindustrial y equipos para granjas en Perú. Compara peletizadoras, pisos para cerdos y peladoras de ajo, y cotiza por WhatsApp.</p>
             <div className="hero-actions">
               <a href="#catalogo" className="button button-primary">Explorar maquinaria<ArrowDown size={18} /></a>
               <button className="button button-on-dark" onClick={() => setOverlay({ type: 'quote' })}>Solicitar cotización</button>
@@ -408,7 +426,8 @@ function App() {
         <div className="shell">
           <SectionHeading eyebrow="Líneas de maquinaria" title="Encuentra soluciones para cada etapa de tu producción." />
           <div className="category-grid">
-            {categories.map(item => <a href="#catalogo" className="category-card" key={item.id} onClick={() => goToCatalog([item.id], item.name)}>
+            {categories.map(item => <a href={categoryPath(item.id)} className="category-card" key={item.id}
+              onClick={event => handleLink(event, () => { goToCatalog([item.id], item.name); window.location.hash = 'catalogo' })}>
               <div className="category-copy">
                 <item.icon size={23} strokeWidth={1.7} aria-hidden="true" />
                 <h3>{item.name}</h3>
@@ -418,6 +437,9 @@ function App() {
               <img src={media(item.image)} alt="" loading="lazy" decoding="async" />
             </a>)}
           </div>
+          <nav className="catalog-links" aria-label="Búsquedas destacadas">
+            {topicalCollections.map(collection => <a className="button button-outline" href={collection.path} key={collection.path}>{collection.name}</a>)}
+          </nav>
         </div>
       </section>
 
@@ -472,7 +494,7 @@ function App() {
                 {types.map(type => <option key={type}>{type}</option>)}
               </select></label>
               {powerSources.length > 0 && <label><span>Alimentación</span><select value={power}
-                onChange={event => { setPower(event.target.value); setLimit(pageSize) }}>
+                onChange={event => { setPower(powerSources.find(source => source === event.target.value) ?? ''); setLimit(pageSize) }}>
                 <option value="">Cualquier alimentación</option>
                 {powerSources.map(source => <option key={source}>{source}</option>)}
               </select></label>}
@@ -519,8 +541,8 @@ function App() {
             <img src={media('dgp-40-frontal')} alt="Extrusora DGP-40, vista frontal" loading="lazy" />
           </div>
           <div>
-            <SectionHeading eyebrow="Good Machines Perú" title="Maquinaria para transformar ideas en producción." />
-            <p>Good Machines Perú reúne diferentes líneas de maquinaria y equipamiento orientadas a las necesidades de la agroindustria, el procesamiento de alimentos y las actividades productivas.</p>
+            <SectionHeading eyebrow="Good Machines Perú" title="Equipa tu granja para cada etapa de producción." />
+            <p>Reunimos equipos para el manejo de granjas avícolas y porcinas, desde comederos y bebederos hasta molinos y peletizadoras para preparar alimento balanceado.</p>
             <p>Explora equipos de distintas capacidades y características técnicas para identificar alternativas acordes con las necesidades de tu negocio.</p>
             <a href="#lineas" className="button button-outline">Conocer las líneas</a>
           </div>
@@ -584,37 +606,85 @@ function App() {
             Explora las alternativas disponibles y prepara una consulta según tus necesidades de producción.
           </SectionHeading>
           <div className="hero-actions">
+            <a className="button button-primary" href={whatsappLink()} target="_blank" rel="noreferrer">
+              <MessageCircle size={18} aria-hidden="true" /> WhatsApp {company.contact.whatsapp.label}
+            </a>
+            <button className="button button-on-dark" onClick={() => setOverlay({ type: 'quote' })}><ClipboardList size={18} /> Preparar cotización</button>
             <a href="#catalogo" className="button button-on-dark">Explorar catálogo</a>
-            <button className="button button-primary" onClick={() => setOverlay({ type: 'quote' })}><ClipboardList size={18} /> Preparar cotización</button>
           </div>
+          <FiscalAddress />
         </div>
       </section>
+      </>}
+      {route.type === 'collection' && <section className="section catalog-page shell">
+        <nav className="breadcrumbs" aria-label="Ruta de navegación">
+          <a href="/">Inicio</a><ChevronRight size={15} aria-hidden="true" />
+          {route.path !== categoryPath(route.collection.category) && <>
+            <a href={categoryPath(route.collection.category)}>{getCategory(route.collection.category).name}</a><ChevronRight size={15} aria-hidden="true" />
+          </>}
+          <span aria-current="page">{route.collection.name}</span>
+        </nav>
+        <h1>{route.collection.name}</h1>
+        <p className="section-description">{route.collection.description}</p>
+        {route.collection.guide && <p className="section-description">{route.collection.guide}</p>}
+        {topicalCollections.some(collection => collection.category === route.collection.category && collection.path !== route.path) &&
+          <nav className="catalog-links" aria-label="Colecciones relacionadas">
+            {topicalCollections.filter(collection => collection.category === route.collection.category && collection.path !== route.path)
+              .map(collection => <a className="button button-outline" href={collection.path} key={collection.path}>{collection.name}</a>)}
+          </nav>}
+        <div className="product-grid">{route.collection.products.map(renderProduct)}</div>
+      </section>}
+      {route.type === 'product' && <section className="section catalog-page shell">
+        <nav className="breadcrumbs" aria-label="Ruta de navegación">
+          <a href="/">Inicio</a><ChevronRight size={15} aria-hidden="true" />
+          <a href={categoryPath(route.product.category)}>{getCategory(route.product.category).name}</a>
+          <ChevronRight size={15} aria-hidden="true" /><span aria-current="page">{productName(route.product)}</span>
+        </nav>
+        <ProductDetail fullPage product={route.product} selected={!!selection[route.product.id]}
+          add={() => addToQuote(route.product)} quote={() => quoteProduct(route.product)} />
+        <section className="related-products">
+          <h2>Equipos relacionados</h2>
+          <div className="product-grid">{products.filter(product => product.category === route.product.category && product.id !== route.product.id)
+            .sort((a, b) => Number(b.subcategory === route.product.subcategory) - Number(a.subcategory === route.product.subcategory))
+            .slice(0, 4).map(renderProduct)}</div>
+        </section>
+      </section>}
+      {route.type === 'not-found' && <section className="section catalog-page shell">
+        <h1>Página no encontrada</h1>
+        <a className="button button-dark" href="/#catalogo">Ver el catálogo</a>
+      </section>}
     </main>
 
     <footer className="site-footer">
       <div className="shell">
         <div className="footer-grid">
           <div>
-            <a className="brand" href="#inicio">
+            <a className="brand" href={isHome ? '#inicio' : '/'}>
               <img src={company.logo} alt="" width="53" height="53" />
-              <span>GOOD MACHINES <small>PERÚ</small></span>
+              <span className="brand-name">GOOD MACHINES <small>PERÚ</small></span>
             </a>
             <p>Maquinaria y equipamiento para actividades agroindustriales y productivas.</p>
+            <nav className="footer-social" aria-label="Redes sociales">
+              {company.contact.social.map(link => <a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label}</a>)}
+            </nav>
           </div>
-          <div><h2>Explorar</h2>{navigation.slice(1).map(([id, label]) => <a href={`#${id}`} key={id}>{label}</a>)}</div>
-          <div><h2>Líneas de maquinaria</h2>{categories.slice(0, 3).map(item =>
-            <a key={item.id} href="#catalogo" onClick={() => goToCatalog([item.id], item.name)}>{item.name}</a>)}</div>
           <div>
-            <h2>Catálogo</h2>
+            <h2>Explorar</h2>
+            {navigation.slice(1).map(([id, label]) => <a href={`${isHome ? '' : '/'}#${id}`} key={id}>{label}</a>)}
             <a href={company.catalog.url} download><FileText size={17} /> Descargar PDF</a>
-            <a href="#preguntas"><CircleHelp size={17} /> Preguntas frecuentes</a>
-            {company.contact.phone && <a href={`tel:${company.contact.phone}`}>{company.contact.phone}</a>}
-            {company.contact.email && <a href={`mailto:${company.contact.email}`}>{company.contact.email}</a>}
-            {company.contact.address && <p>{company.contact.address}</p>}
-            {company.contact.social.map(link => <a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label}</a>)}
+            <a href="/#preguntas"><CircleHelp size={17} /> Preguntas frecuentes</a>
+          </div>
+          <div><h2>Líneas de maquinaria</h2>{categories.slice(0, 3).map(item =>
+            <a key={item.id} href={categoryPath(item.id)}>{item.name}</a>)}</div>
+          <div>
+            <h2>Contacto</h2>
+            <a href={whatsappLink()} target="_blank" rel="noreferrer">
+              <MessageCircle size={17} aria-hidden="true" /> WhatsApp {company.contact.whatsapp.label}
+            </a>
+            <FiscalAddress />
           </div>
         </div>
-        <div className="footer-bottom"><span>© {new Date().getFullYear()} Good Machines Perú</span><span>Vista previa desarrollada por <strong>Kafka Tech</strong></span></div>
+        <div className="footer-bottom"><span suppressHydrationWarning>© {new Date().getFullYear()} Good Machines Perú</span><span>Desarrollado por <strong>Kafka Tech</strong></span></div>
       </div>
     </footer>
     <div role="status" className="sr-only">{announcement}</div>
