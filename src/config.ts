@@ -11,8 +11,8 @@ export const company = {
     whatsapp: { number: '51993777340', label: '993 777 340' },
     address: 'Av. Javier Prado Mza. G1 Lote 27, Urb. Los Portales, Lima',
     social: [
-      { label: 'Facebook', url: 'https://www.facebook.com/share/1A79vQUhy7/?mibextid=wwXIfr' },
-      { label: 'Instagram', url: 'https://www.instagram.com/goodmachinesperu?cnvx=MXdwYTd0OXp1cjVqcg==' },
+      { label: 'Facebook', url: 'https://www.facebook.com/people/Good-Machines-Per%C3%BA/100067699182566/' },
+      { label: 'Instagram', url: 'https://www.instagram.com/goodmachinesperu/' },
       { label: 'TikTok', url: 'https://www.tiktok.com/@goodmachinesperu' },
     ],
   },

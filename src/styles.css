@@ -113,9 +113,9 @@ ul, ol { margin: 0; }
 .hero::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(#c5dafa0b 1px, transparent 1px), linear-gradient(90deg, #c5dafa0b 1px, transparent 1px); background-size: 50px 50px; mask-image: linear-gradient(90deg, transparent 19%, #000 72%); pointer-events: none; }
 .hero-inner { position: relative; display: grid; grid-template-columns: 47% 53%; align-items: center; min-height: clamp(550px, 43vw, 670px); }
 .hero-copy { position: relative; z-index: 2; padding: 58px 0 66px; animation: reveal .58s ease both; }
-.hero .eyebrow, .contact-section .eyebrow { color: var(--green-bright); }
-.hero h1 { color: var(--white); font-size: clamp(4.2rem, 6.15vw, 6.75rem); line-height: .88; font-weight: 800; letter-spacing: -.024em; margin-block: 19px 24px; }
-.hero h1 em { display: block; font-style: normal; color: var(--green-bright); }
+.hero-tagline, .contact-section .eyebrow { color: var(--green-bright); }
+.hero-tagline { font-size: clamp(1.2rem, 2vw, 1.65rem); font-weight: 760; line-height: 1.2; }
+.hero h1 { color: var(--white); font-size: clamp(3rem, 5vw, 5.25rem); line-height: .94; font-weight: 800; letter-spacing: -.024em; margin-block: 16px 21px; text-wrap: balance; }
 .hero-description { color: #dae4ee; font-size: clamp(1rem, 1.3vw, 1.16rem); max-width: 47ch; line-height: 1.65; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 29px; }
 .hero-actions .button { min-height: 52px; }
@@ -242,17 +242,19 @@ select { width: 100%; min-height: 48px; padding: 9px 31px 9px 10px; border: 1px 
 .contact-section .section-heading { margin-bottom: 0; }
 .contact-section h2 { color: var(--white); max-width: 790px; }
 .contact-section .section-description { color: #dbe5f0; }
-.fiscal-address { display: inline-flex; align-items: flex-start; gap: 7px; }
-.fiscal-address svg { flex: none; }
-.contact-section .fiscal-address { margin-top: 18px; color: #dbe5f0; font-size: .9rem; line-height: 1.5; }
-.contact-section .fiscal-address:hover { text-decoration: underline; }
+.fiscal-address { font-size: .9rem; line-height: 1.5; }
+.fiscal-address p > span { display: block; margin-top: 3px; }
+.fiscal-address a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: .18em; }
+.contact-section .fiscal-address { margin-top: 18px; color: #dbe5f0; }
+.contact-section .fiscal-address a { color: var(--green-bright); }
+.hero :focus-visible, .contact-section :focus-visible, .guidance-section :focus-visible { outline-color: var(--green-bright); }
 .site-footer { color: #4d5d70; background: var(--white); }
 .footer-grid { display: grid; grid-template-columns: 1.24fr .7fr 1fr .85fr; gap: 24px; padding-block: 48px 39px; }
 .footer-grid > div { display: flex; flex-direction: column; align-items: flex-start; gap: 9px; }
 .footer-grid p { max-width: 28ch; font-size: .875rem; line-height: 1.5; }
 .footer-grid h2 { font: 760 .92rem/1.45 'Inter Variable', sans-serif; margin-bottom: 2px; }
 .footer-grid a:not(.brand) { display: inline-flex; gap: 7px; align-items: center; min-height: 26px; font-size: .86rem; line-height: 1.25; }
-.footer-grid a.fiscal-address { align-items: flex-start; line-height: 1.5; }
+.footer-grid .fiscal-address a:not(.brand) { color: var(--purple); min-height: 44px; line-height: 1.5; }
 .footer-grid a:hover:not(.brand) { color: var(--purple); text-decoration: underline; }
 .footer-social { display: flex; flex-wrap: wrap; column-gap: 13px; }
 .footer-bottom { display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid var(--line); padding-block: 21px; font-size: .82rem; }
@@ -338,8 +340,7 @@ select { width: 100%; min-height: 48px; padding: 9px 31px 9px 10px; border: 1px 
   .nav { gap: 16px; }
   .header-quote { padding-inline: 10px; font-size: .8rem; }
   .hero-inner { min-height: 495px; }
-  .hero h1 { font-size: clamp(3.1rem, 7.2vw, 4.4rem); }
-  .hero .eyebrow { font-size: .71rem; }
+  .hero h1 { font-size: clamp(2.7rem, 5.5vw, 3.9rem); }
   .hero-stage { width: 107%; margin-left: -4%; }
   .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .category-card { grid-template-columns: minmax(0, 1fr) 40%; min-height: 185px; }
@@ -359,8 +360,7 @@ select { width: 100%; min-height: 48px; padding: 9px 31px 9px 10px; border: 1px 
   .shell { width: calc(100% - 36px); }
   .hero-inner { display: flex; flex-direction: column; align-items: stretch; min-height: 0; }
   .hero-copy { padding: 48px 0 12px; }
-  .hero h1 { max-width: 11ch; margin: 12px 0 15px; font-size: clamp(3.5rem, 9.5vw, 5rem); }
-  .hero h1 em { white-space: nowrap; }
+  .hero h1 { margin: 12px 0 15px; font-size: clamp(2.75rem, 8.2vw, 4rem); }
   .hero-description { max-width: 47ch; }
   .hero-actions { margin-top: 21px; }
   .hero-stage { width: min(102%, 530px); aspect-ratio: 1.34; margin: 1% auto 23px; }
@@ -394,7 +394,6 @@ select { width: 100%; min-height: 48px; padding: 9px 31px 9px 10px; border: 1px 
   .header-actions { gap: 6px; }
   .header-quote { min-width: 44px; gap: 5px; padding-inline: 7px; }
   .header-quote > span:not(.count-badge) { display: none; }
-  .hero .eyebrow { letter-spacing: .078em; }
   .hero-actions { gap: 7px; }
   .hero-actions .button { padding-inline: 10px; font-size: .8rem; }
   .hero-stage figcaption { padding: 5px 7px; }

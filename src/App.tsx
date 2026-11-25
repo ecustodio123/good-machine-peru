@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import {
   ArrowDown, ArrowDownToLine, Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp,
-  ClipboardList, Factory, FileText, MapPin, Menu, MessageCircle, Minus, Plus,
+  ClipboardList, Factory, FileText, Menu, MessageCircle, Minus, Plus,
   Search, SlidersHorizontal, Trash2, X,
 } from 'lucide-react'
 import { categories, getCategory, media, normalize, productName, products, type CategoryId, type PowerSource, type Product } from './catalog'
@@ -72,11 +72,11 @@ function SectionHeading({ eyebrow, title, children }: { eyebrow: string; title: 
 }
 
 function FiscalAddress() {
-  return <a className="fiscal-address" href={whatsappLink('Hola, Good Machines Perú. Quisiera consultar por su domicilio fiscal.')}
-    target="_blank" rel="noreferrer">
-    <MapPin size={18} aria-hidden="true" />
-    <span><strong>Domicilio fiscal:</strong> {company.contact.address}</span>
-  </a>
+  return <div className="fiscal-address">
+    <p><strong>Domicilio fiscal</strong><span>{company.contact.address}</span></p>
+    <a href={whatsappLink('Hola, Good Machines Perú. Quisiera consultar por su domicilio fiscal.')}
+      target="_blank" rel="noreferrer">Consultar domicilio por WhatsApp</a>
+  </div>
 }
 
 function ProductCard({ product, selected, open, quote }: {
@@ -403,8 +403,8 @@ function App({ route }: { route: Route }) {
       <section className="hero" id="inicio" aria-labelledby="hero-title">
         <div className="shell hero-inner">
           <div className="hero-copy">
-            <p className="eyebrow">Maquinaria para sectores productivos</p>
-            <h1 id="hero-title">Todo para <em>tu granja</em></h1>
+            <p className="hero-tagline">Todo para tu granja</p>
+            <h1 id="hero-title">Maquinaria agroindustrial y equipos para granjas en Perú</h1>
             <p className="hero-description">Maquinaria agroindustrial y equipos para granjas en Perú. Compara peletizadoras, pisos para cerdos y peladoras de ajo, y cotiza por WhatsApp.</p>
             <div className="hero-actions">
               <a href="#catalogo" className="button button-primary">Explorar maquinaria<ArrowDown size={18} /></a>
@@ -414,9 +414,9 @@ function App({ route }: { route: Route }) {
           <figure className="hero-stage" aria-label="Fotografías del catálogo de Good Machines Perú">
             <div className="hero-orbit" aria-hidden="true" />
             <div className="hero-platform" aria-hidden="true" />
-            <img className="hero-back" src={media('s-210')} alt="Peletizadora S-210" fetchPriority="high" />
-            <img className="hero-main" src={media('dgp-40')} alt="Extrusora DGP-40" fetchPriority="high" />
-            <img className="hero-front" src={media('ss-06a')} alt="Deshidratador SS-06A" />
+            <img className="hero-back" src={media('s-210')} alt="Peletizadora S-210" width={546} height={766} />
+            <img className="hero-main" src={media('dgp-40')} alt="Extrusora DGP-40" width={790} height={736} fetchPriority="high" />
+            <img className="hero-front" src={media('ss-06a')} alt="Deshidratador SS-06A" width={637} height={453} />
             <figcaption><span>EXTRUSORA PARA PECES</span><strong>DGP-40</strong></figcaption>
           </figure>
         </div>
@@ -424,7 +424,7 @@ function App({ route }: { route: Route }) {
 
       <section className="section lines-section" id="lineas">
         <div className="shell">
-          <SectionHeading eyebrow="Líneas de maquinaria" title="Encuentra soluciones para cada etapa de tu producción." />
+          <SectionHeading eyebrow="Líneas de maquinaria" title="Líneas de maquinaria agroindustrial y equipos para granjas" />
           <div className="category-grid">
             {categories.map(item => <a href={categoryPath(item.id)} className="category-card" key={item.id}
               onClick={event => handleLink(event, () => { goToCatalog([item.id], item.name); window.location.hash = 'catalogo' })}>
@@ -463,7 +463,7 @@ function App({ route }: { route: Route }) {
 
       <section className="section catalog-section" id="catalogo">
         <div className="shell">
-          <SectionHeading eyebrow="Catálogo digital" title="Explora nuestra maquinaria.">
+          <SectionHeading eyebrow="Catálogo digital" title="Catálogo de maquinaria y equipos">
             Busca por nombre o modelo, o filtra por línea y tipo de equipo.
           </SectionHeading>
           <div className="catalog-toolbar">
